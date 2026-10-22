@@ -208,6 +208,14 @@ def create_app():
 
 
 if __name__ == "__main__":
+    import os
+    import socket
+
     app = create_app()
+    port = int(os.environ.get("PORT", 8080))
+    # Si el puerto 8080 está ocupado en Windows (ej. por Apache httpd), usar 5000
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(("127.0.0.1", port)) == 0:
+            port = 5000
     # 0.0.0.0 para que la laptop B (red LAN) pueda acceder al servidor.
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)
