@@ -9,7 +9,12 @@ from flask import (
 
 from config import Config
 from models import db, Ingrediente, Refresco, Pizza, Pedido, Pago
-from utils import guardar_json, enviar_correo
+from utils import (
+    guardar_json,
+    enviar_correo,
+    generar_html_yappy_pedido,
+    generar_html_yappy_pago,
+)
 from replication import replicar_pedido, replicar_pago
 
 
@@ -134,6 +139,7 @@ def create_app():
                 f"Pedido #{pedido.id} recibido - CHINOS CAFÉ",
                 f"Hola {cliente}, tu pedido fue registrado.\n\n{data}",
                 adjunto_json=ruta,
+                cuerpo_html=generar_html_yappy_pedido(data),
             )
 
             # Replicación a la 2ª DB
@@ -167,17 +173,19 @@ def create_app():
 
             # Comprobante JSON + correo de confirmación de pago
             data = pago.to_dict()
+            pedido_dict = pedido.to_dict()
             ruta = guardar_json("pago", data)
             enviar_correo(
                 [Config.MAIL_EMPRESA, pedido.correo_cliente],
-                f"Pago confirmado - Pedido #{pedido.id}",
+                f"¡Enviaste un Yappy! 💸 - Pedido #{pedido.id}",
                 f"Pago recibido vía YAPPY. Ref: {referencia}. "
                 f"El pedido pasa a despacho.\n\n{data}",
                 adjunto_json=ruta,
+                cuerpo_html=generar_html_yappy_pago(pedido_dict, data),
             )
 
             # Replicación a la 2ª DB (actualizar estado del pedido y registrar pago)
-            replicar_pedido(pedido.to_dict())
+            replicar_pedido(pedido_dict)
             ok, msg = replicar_pago(data)
             flash(f"Pago del pedido #{pedido.id} confirmado. {msg}",
                   "ok" if ok else "error")
