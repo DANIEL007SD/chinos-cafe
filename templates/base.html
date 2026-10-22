@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CHINOS CAFÉ S.A. · {% block titulo %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>🍕 CHINOS CAFÉ S.A.</h1>
+    <nav>
+      <a href="{{ url_for('index') }}">Inicio</a>
+      <a href="{{ url_for('fabrica') }}">Fábrica</a>
+      <a href="{{ url_for('pedidos') }}">Pedidos</a>
+      <a href="{{ url_for('pagos') }}">Pagos</a>
+    </nav>
+  </header>
+
+  <main>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensajes %}
+        <div class="flash {{ categoria }}">{{ texto }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block contenido %}{% endblock %}
+  </main>
+
+  <footer>
+    <small>Examen Parcial 2 · Ingeniería Web · UTP</small>
+  </footer>
+</body>
+</html>

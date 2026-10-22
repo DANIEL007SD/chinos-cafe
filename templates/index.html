@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+  <section class="hero">
+    <h2>Interfaz CRUD de combos de pizza</h2>
+    <p>Sistema prototipo para el ordenamiento de combos de alimentos.</p>
+    <div class="cards">
+      <a class="card" href="{{ url_for('fabrica') }}">
+        <h3>🏭 Fábrica</h3>
+        <p>Registrar y administrar pizzas, ingredientes y refrescos.</p>
+      </a>
+      <a class="card" href="{{ url_for('pedidos') }}">
+        <h3>🧾 Pedidos</h3>
+        <p>El cliente arma su combo. Correo + JSON + replicación.</p>
+      </a>
+      <a class="card" href="{{ url_for('pagos') }}">
+        <h3>💳 Pagos</h3>
+        <p>Confirmación de pago (Yappy) y despacho.</p>
+      </a>
+    </div>
+  </section>
+{% endblock %}

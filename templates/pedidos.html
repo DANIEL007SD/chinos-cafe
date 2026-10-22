@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titulo %}Pedidos{% endblock %}
+{% block contenido %}
+  <h2>🧾 Pedidos</h2>
+
+  <form method="post" action="{{ url_for('pedidos_crear') }}" class="panel">
+    <h3>Nuevo pedido</h3>
+    <label>Cliente
+      <input type="text" name="cliente" required>
+    </label>
+    <label>Correo del cliente
+      <input type="email" name="correo_cliente" required>
+    </label>
+    <label>Combo (pizza)
+      <select name="pizza_id" required>
+        {% for p in pizzas %}
+          <option value="{{ p.id }}">{{ p.nombre }} — B/. {{ '%.2f'|format(p.precio) }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Refresco
+      <select name="refresco_id">
+        <option value="">— Sin refresco —</option>
+        {% for r in refrescos %}
+          <option value="{{ r.id }}">{{ r.nombre }} — B/. {{ '%.2f'|format(r.precio) }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Cantidad
+      <input type="number" name="cantidad" value="1" min="1">
+    </label>
+    <label>Entrega
+      <select name="retiro_en_sitio">
+        <option value="si">Retiro en sitio</option>
+        <option value="no">A domicilio (+ flete)</option>
+      </select>
+    </label>
+    <button type="submit">Crear pedido</button>
+  </form>
+
+  <h3>Pedidos registrados</h3>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Cliente</th><th>Pizza</th><th>Refresco</th><th>Cant.</th><th>Total</th><th>Estado</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for o in pedidos %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.cliente }}</td>
+        <td>{{ o.pizza.nombre }}</td>
+        <td>{{ o.refresco.nombre if o.refresco else '—' }}</td>
+        <td>{{ o.cantidad }}</td>
+        <td>B/. {{ '%.2f'|format(o.total) }}</td>
+        <td><span class="estado {{ o.estado }}">{{ o.estado }}</span></td>
+        <td>{{ o.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

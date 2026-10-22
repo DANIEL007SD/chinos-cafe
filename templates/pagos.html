@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Pagos{% endblock %}
+{% block contenido %}
+  <h2>💳 Pagos</h2>
+
+  <form method="post" action="{{ url_for('pagos_confirmar') }}" class="panel">
+    <h3>Confirmar pago (YAPPY Comercial)</h3>
+    <label>Pedido pendiente
+      <select name="pedido_id" required>
+        {% for o in pendientes %}
+          <option value="{{ o.id }}">#{{ o.id }} — {{ o.cliente }} — B/. {{ '%.2f'|format(o.total) }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Referencia / comprobante Yappy
+      <input type="text" name="referencia" placeholder="Ej. YAP-000123" required>
+    </label>
+    <button type="submit">Confirmar pago</button>
+  </form>
+
+  <h3>Pagos registrados</h3>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Pedido</th><th>Método</th><th>Referencia</th><th>Monto</th><th>Fecha</th><th>Despacho</th></tr>
+    </thead>
+    <tbody>
+      {% for pg in pagos %}
+      <tr>
+        <td>{{ pg.id }}</td>
+        <td>#{{ pg.pedido_id }}</td>
+        <td>{{ pg.metodo }}</td>
+        <td>{{ pg.referencia }}</td>
+        <td>B/. {{ '%.2f'|format(pg.monto) }}</td>
+        <td>{{ pg.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>
+          {% if pg.pedido.estado != 'DESPACHADO' %}
+          <form method="post" action="{{ url_for('pagos_despachar', pid=pg.pedido_id) }}" class="inline">
+            <button type="submit">Despachar</button>
+          </form>
+          {% else %}✅ Despachado{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
