@@ -176,7 +176,8 @@ def create_app():
                 adjunto_json=ruta,
             )
 
-            # Replicación a la 2ª DB
+            # Replicación a la 2ª DB (actualizar estado del pedido y registrar pago)
+            replicar_pedido(pedido.to_dict())
             ok, msg = replicar_pago(data)
             flash(f"Pago del pedido #{pedido.id} confirmado. {msg}",
                   "ok" if ok else "error")
@@ -191,6 +192,7 @@ def create_app():
             pedido = Pedido.query.get_or_404(pid)
             pedido.estado = "DESPACHADO"
             db.session.commit()
+            replicar_pedido(pedido.to_dict())
             flash(f"Pedido #{pid} despachado al cliente.", "ok")
         except Exception as e:
             db.session.rollback()
