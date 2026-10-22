@@ -20,34 +20,37 @@ body {
 header {
   background: var(--rojo);
   color: #fff;
-  padding: 1rem 1.5rem;
+  padding: 1.4rem 2.5rem;
 }
-header h1 { margin: 0 0 .5rem; font-size: 1.4rem; }
+header h1 { margin: 0 0 .7rem; font-size: 2rem; }
 nav a {
   color: #fff;
   text-decoration: none;
-  margin-right: 1.2rem;
+  margin-right: 1.8rem;
   font-weight: 600;
+  font-size: 1.15rem;
   opacity: .9;
 }
 nav a:hover { opacity: 1; text-decoration: underline; }
 
-main { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+main { max-width: 1280px; margin: 2.5rem auto; padding: 0 2rem; }
 
-.hero h2 { color: var(--rojo); }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.hero h2 { color: var(--rojo); font-size: 2.4rem; }
+.hero > p { font-size: 1.25rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2.5rem; }
 .card {
   display: block;
   background: #fff;
   border: 1px solid var(--borde);
-  border-radius: 10px;
-  padding: 1.2rem;
+  border-radius: 14px;
+  padding: 2.4rem 2rem;
   text-decoration: none;
   color: var(--texto);
   transition: transform .1s, box-shadow .1s;
 }
-.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.1); }
-.card h3 { margin: 0 0 .4rem; color: var(--rojo); }
+.card:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+.card h3 { margin: 0 0 .7rem; color: var(--rojo); font-size: 1.6rem; }
+.card p { font-size: 1.1rem; margin: 0; }
 
 .panel {
   background: #fff;
