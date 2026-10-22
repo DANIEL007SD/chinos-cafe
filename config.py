@@ -7,6 +7,23 @@ import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# Cargar variables de .env automáticamente si existe el archivo
+_env_path = os.path.join(BASE_DIR, ".env")
+if os.path.exists(_env_path):
+    with open(_env_path, encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip().strip('"').strip("'"))
+
+
+def _clean_supabase_url(raw_url: str) -> str:
+    url = raw_url.strip().rstrip("/")
+    if url.endswith("/rest/v1"):
+        url = url[: -len("/rest/v1")]
+    return url
+
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "chinos-cafe-dev-key")
@@ -17,12 +34,20 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # --- Base de datos RÉPLICA (otra máquina / VM) ---
+    # --- Base de datos RÉPLICA (otra máquina / VM / Supabase) ---
     # Parte I del examen: "La data debe estar en ambas (2) DB".
-    # Ejemplo para PostgreSQL en la VM:  postgresql://user:pass@172.20.10.150:5432/chinos
+    # Ejemplo para PostgreSQL en la VM o Supabase:  postgresql://user:pass@172.20.10.150:5432/chinos
     REPLICA_DATABASE_URL = os.environ.get(
         "REPLICA_DATABASE_URL",
         "sqlite:///" + os.path.join(BASE_DIR, "chinos_cafe_replica.db"),
+    )
+
+    # --- Credenciales Supabase REST API (Laptop B) ---
+    SUPABASE_URL = _clean_supabase_url(os.environ.get("SUPABASE_URL", ""))
+    SUPABASE_PUBLISHABLE_KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
+    SUPABASE_SECRET_KEY = os.environ.get("SUPABASE_SECRET_KEY", "")
+    SUPABASE_KEY = os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get(
+        "SUPABASE_PUBLISHABLE_KEY", ""
     )
 
     # --- Correo (confirmaciones de pedido y pago) ---

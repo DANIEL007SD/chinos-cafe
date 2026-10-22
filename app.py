@@ -9,7 +9,12 @@ from flask import (
 
 from config import Config
 from models import db, Ingrediente, Refresco, Pizza, Pedido, Pago
-from utils import guardar_json, enviar_correo
+from utils import (
+    guardar_json,
+    enviar_correo,
+    generar_html_yappy_pedido,
+    generar_html_yappy_pago,
+)
 from replication import replicar_pedido, replicar_pago
 
 
@@ -134,6 +139,7 @@ def create_app():
                 f"Pedido #{pedido.id} recibido - CHINOS CAFÉ",
                 f"Hola {cliente}, tu pedido fue registrado.\n\n{data}",
                 adjunto_json=ruta,
+                cuerpo_html=generar_html_yappy_pedido(data),
             )
 
             # Replicación a la 2ª DB
@@ -167,16 +173,19 @@ def create_app():
 
             # Comprobante JSON + correo de confirmación de pago
             data = pago.to_dict()
+            pedido_dict = pedido.to_dict()
             ruta = guardar_json("pago", data)
             enviar_correo(
                 [Config.MAIL_EMPRESA, pedido.correo_cliente],
-                f"Pago confirmado - Pedido #{pedido.id}",
+                f"¡Enviaste un Yappy! 💸 - Pedido #{pedido.id}",
                 f"Pago recibido vía YAPPY. Ref: {referencia}. "
                 f"El pedido pasa a despacho.\n\n{data}",
                 adjunto_json=ruta,
+                cuerpo_html=generar_html_yappy_pago(pedido_dict, data),
             )
 
-            # Replicación a la 2ª DB
+            # Replicación a la 2ª DB (actualizar estado del pedido y registrar pago)
+            replicar_pedido(pedido_dict)
             ok, msg = replicar_pago(data)
             flash(f"Pago del pedido #{pedido.id} confirmado. {msg}",
                   "ok" if ok else "error")
@@ -191,6 +200,7 @@ def create_app():
             pedido = Pedido.query.get_or_404(pid)
             pedido.estado = "DESPACHADO"
             db.session.commit()
+            replicar_pedido(pedido.to_dict())
             flash(f"Pedido #{pid} despachado al cliente.", "ok")
         except Exception as e:
             db.session.rollback()
@@ -206,6 +216,14 @@ def create_app():
 
 
 if __name__ == "__main__":
+    import os
+    import socket
+
     app = create_app()
+    port = int(os.environ.get("PORT", 8080))
+    # Si el puerto 8080 está ocupado en Windows (ej. por Apache httpd), usar 5000
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(("127.0.0.1", port)) == 0:
+            port = 5000
     # 0.0.0.0 para que la laptop B (red LAN) pueda acceder al servidor.
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)
