@@ -1,0 +1,32 @@
+# IP FIJA de la RED LAN del examen (EXAMEN PARCIAL2)
+# ---------------------------------------------------------------
+# Aplicar SOLO cuando el host esté conectado a la Wi-Fi "EXAMEN PARCIAL2"
+# y el Adaptador 2 de la VM esté en modo "Adaptador puente" (Bridged)
+# sobre la tarjeta Wi-Fi del host.
+#
+# Verifica primero el nombre real de la interfaz con:  ip a
+# (si no es enp0s8, reemplázalo abajo).
+#
+# Aplicar:
+#   sudo cp netplan-examen.yaml /etc/netplan/99-examen.yaml
+#   sudo chmod 600 /etc/netplan/99-examen.yaml
+#   sudo netplan apply
+# ---------------------------------------------------------------
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s3:                      # Adaptador 1 (NAT) - internet (respaldo)
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 200
+
+    enp0s8:                      # Adaptador 2 (PUENTE a EXAMEN PARCIAL2) - IP FIJA
+      dhcp4: no
+      addresses: [172.20.10.100/24]     # IP + Máscara 255.255.255.0
+      routes:
+        - to: default
+          via: 172.20.10.1             # Puerta de enlace (PE)
+          metric: 100
+      nameservers:
+        addresses: [172.20.10.1, 8.8.8.8]   # DNS1, DNS2
