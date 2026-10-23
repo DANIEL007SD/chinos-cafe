@@ -42,7 +42,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=$APP_DIR
-ExecStart=$VENV/bin/waitress-serve --listen=127.0.0.1:8000 --call app:create_app
+ExecStart=$VENV/bin/waitress-serve --listen=127.0.0.1:8001 --call app:create_app
 Restart=always
 
 [Install]
@@ -69,7 +69,7 @@ server {
     listen 8080;
     server_name _;
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -82,7 +82,7 @@ server {
     ssl_certificate     /etc/nginx/ssl/chinos.crt;
     ssl_certificate_key /etc/nginx/ssl/chinos.key;
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
