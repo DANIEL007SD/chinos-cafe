@@ -1,108 +1,84 @@
 # Guía de Construcción: Topología de Red en Cisco Packet Tracer
 
-Esta guía detalla los pasos para recrear la topología de red del Parcial 2 en **Cisco Packet Tracer** y exportar el archivo `.pkt` junto a las capturas correspondientes.
+Esta guía detalla la configuración exacta para recrear el escenario de red del **Examen Parcial 2** en **Cisco Packet Tracer** cumpliendo con los parámetros indicados por el profesor: conexión Ethernet al router, SSID `EXAMENPARCIAL2` y clave `1234567890`.
 
 ---
 
-## 1. Dispositivos Necesarios en Packet Tracer
+## 1. Dispositivos a Colocar en el Área de Trabajo
 
-| Dispositivo | Modelo en Packet Tracer | Nombre Lógico | Conexión |
+| Dispositivo en Packet Tracer | Nombre del Dispositivo | Conexión Física | Dirección IP / Rol |
 | :--- | :--- | :--- | :--- |
-| **Router Inalámbrico** | `WRT300N` o `Home Router` | `Router_WiFi_EXAMEN` | Central |
-| **Switch de Distribución** | `Cisco Catalyst 2960-24TT` | `SW-CORE-01` | Cable directo (`Copper Straight-Through`) |
-| **Laptop A** | `Laptop-PT` | `Laptop-A-Desarrollo` | Módulo Wi-Fi `WPC300N` |
-| **Servidor VM Laptop A** | `Server-PT` | `Servidor-Web-Flask-NGINX` | Cable directo a Switch / Wi-Fi |
-| **Laptop B** | `Laptop-PT` | `Laptop-B-Red-Replica` | Módulo Wi-Fi `WPC300N` |
-| **VM Kali Linux (Atacante)**| `PC-PT` | `Kali-Linux-Atacante` | Cable directo / Wi-Fi |
-| **Servidor BD Réplica** | `Server-PT` | `BD-MySQL-Replica` | Cable directo al Switch |
+| **Wireless Router (ej. WRT300N)** | `ROUTER-EXAMEN-PARCIAL2` | Central | `172.20.10.1` (Gateway / DHCP) |
+| **Server-PT** | `SRV-CHINOS-WEB` | Cable directo Ethernet a puerto Ethernet 1 del router | `172.20.10.100` (Servidor NGINX / Flask) |
+| **PC-PT (o Laptop)** | `KALI-LINUX-ATACANTE` | Cable directo Ethernet a puerto Ethernet 2 del router | `172.20.10.105` (Atacante / Auditoría) |
+| **Laptop-PT** | `LAPTOP-A-DEV` | Cable directo a Ethernet 3 o conexión Wi-Fi | `172.20.10.101` (Host Laptop A) |
+| **Laptop-PT** | `LAPTOP-B-ADMIN` | Cable directo a Ethernet 4 o conexión Wi-Fi | `172.20.10.102` (Host Laptop B) |
+| **Cloud-PT (Nube / Internet)** | `SUPABASE-CLOUD` | Conectado al puerto Internet (WAN) del router | `talewwtbjoyfsoresvmx.supabase.co` |
 
 ---
 
-## 2. Configuración Paso a Paso en Packet Tracer
+## 2. Configuración del Router en Packet Tracer
 
-### Paso 1: Configurar el Router Inalámbrico (`Router_WiFi_EXAMEN`)
-1. Abrir la pestaña **Config** > **LAN**:
-   - **IP Address:** `172.20.10.1`
-   - **Subnet Mask:** `255.255.255.0`
-2. Pestaña **GUI** (o **Wireless**):
-   - **Network Name (SSID):** `EXAMEN PARCIAL2`
-   - **Wireless Security:** `WPA2 Personal`
-   - **Encryption:** `AES`
-   - **Pre-Shared Key (Passphrase):** `Parcial2026*` (o la contraseña acordada)
-3. Pestaña **GUI** > **Setup** > **Basic Setup** (DHCP):
-   - **DHCP Server:** `Enabled`
-   - **Start IP Address:** `172.20.10.100`
-   - **Maximum number of Users:** `50`
-   - **DNS 1:** `172.20.10.1`
-   - Clic en **Save Settings**.
-
----
-
-### Paso 2: Configurar las Laptops con Wi-Fi
-Para `Laptop-A-Desarrollo` y `Laptop-B-Red-Replica`:
-1. Hacer clic en la Laptop > pestaña **Physical**.
-2. **Apagar** la laptop con el botón de encendido.
-3. Arrastrar el puerto Ethernet `PT-LAPTOP-NM-1CFE` a la lista de módulos para quitarlo.
-4. Arrastrar el módulo inalámbrico **`WPC300N`** a la bahía vacía.
-5. **Encender** la laptop de nuevo.
-6. Ir a la pestaña **Desktop** > **PC Wireless** > pestaña **Connect**:
-   - Dar clic en **Refresh**.
-   - Seleccionar `EXAMEN PARCIAL2` y dar clic en **Connect**.
-   - Introducir la clave WPA2 y verificar que aparezca la señal de conexión.
-7. En **Desktop** > **IP Configuration**, verificar que reciba IP vía DHCP en el rango `172.20.10.10X`.
+1. Haz clic en el **Wireless Router** ➔ pestaña **GUI**:
+2. **Setup ➔ Basic Setup:**
+   * **IP Address:** `172.20.10.1`
+   * **Subnet Mask:** `255.255.255.0`
+   * **DHCP Server:** `Enabled`
+   * **Start IP Address:** `172.20.10.100`
+   * **Maximum number of Users:** `50`
+   * **Static DNS 1:** `172.20.10.1`
+   * Clic en **Save Settings** (al fondo de la página).
+3. **Wireless ➔ Basic Wireless Settings:**
+   * **Network Name (SSID):** `EXAMENPARCIAL2`
+   * Clic en **Save Settings**.
+4. **Wireless ➔ Wireless Security:**
+   * **Security Mode:** `WPA2 Personal`
+   * **Encryption:** `AES`
+   * **Passphrase:** `1234567890`
+   * Clic en **Save Settings**.
 
 ---
 
-### Paso 3: Configurar el Servidor Web (Laptop A)
-1. Clic en `Servidor-Web-Flask-NGINX` > **Desktop** > **IP Configuration**:
-   - **IP Configuration:** Estática
-   - **IP Address:** `172.20.10.102`
-   - **Subnet Mask:** `255.255.255.0`
-   - **Default Gateway:** `172.20.10.1`
-   - **DNS Server:** `172.20.10.1`
-2. Ir a la pestaña **Services** > **HTTP**:
-   - Asegurar que **HTTP** y **HTTPS** estén en **ON**.
-   - Editar `index.html` para simular la app:
+## 3. Configuración de los Equipos en Packet Tracer
+
+### Servidor Web (`SRV-CHINOS-WEB`):
+1. **Desktop ➔ IP Configuration:**
+   * **IP Address:** `172.20.10.100`
+   * **Subnet Mask:** `255.255.255.0`
+   * **Default Gateway:** `172.20.10.1`
+   * **DNS Server:** `172.20.10.1`
+2. **Config ➔ Services ➔ HTTP:**
+   * Asegúrate de que **HTTP** y **HTTPS** estén en **ON**.
+   * Edita `index.html` para simular la app de Chinos Café:
      ```html
-     <html>
-       <h1>Chinos Cafe - App Web Flask NGINX</h1>
-       <p>Servidor Principal - 172.20.10.102</p>
-     </html>
+     <h3>CHINOS CAFE S.A. - Servidor Web</h3>
+     <p>IP: 172.20.10.100 | HTTP: 8080 | HTTPS: 8443</p>
      ```
+
+### Máquina Atacante Kali (`KALI-LINUX-ATACANTE`):
+1. **Desktop ➔ IP Configuration:**
+   * Elige **DHCP** (deberá recibir una IP en el rango `172.20.10.10x`) o configúrala estática con `172.20.10.105`.
+   * **Default Gateway:** `172.20.10.1`
 
 ---
 
-### Paso 4: Configurar la BD Réplica y la VM Kali (Laptop B)
-1. `BD-MySQL-Replica`:
-   - Asignar IP estática: `172.20.10.104` (o `172.20.10.103` asociada a Laptop B)
-   - Máscara: `255.255.255.0` | Gateway: `172.20.10.1`
-2. `Kali-Linux-Atacante`:
-   - Asignar IP: `172.20.10.105`
-   - Máscara: `255.255.255.0` | Gateway: `172.20.10.1`
+## 4. Pruebas de Validación dentro de Packet Tracer
+
+1. **Prueba ICMP (Ping):**
+   * Desde `KALI-LINUX-ATACANTE` ➔ **Desktop** ➔ **Command Prompt**:
+     ```
+     ping 172.20.10.100
+     ```
+     *Debe responder 4 paquetes exitosos.*
+2. **Prueba Web Browser:**
+   * Desde `KALI-LINUX-ATACANTE` ➔ **Desktop** ➔ **Web Browser**:
+   * Escribe: `http://172.20.10.100` y pulsa **Go**.
+   * Debe desplegar la página de Chinos Café.
+3. **Captura:**
+   * Toma una captura de pantalla del diagrama completo con las luces verdes de enlace y del ping exitoso para el informe.
 
 ---
 
-## 3. Pruebas de Validación dentro de Packet Tracer
-
-1. **Prueba de Conectividad (Ping):**
-   - Desde `Kali-Linux-Atacante` (Command Prompt):
-     ```
-     ping 172.20.10.102
-     ```
-     *Debe responder 4/4 exitosos.*
-2. **Prueba de Servicio Web:**
-   - Desde `Kali-Linux-Atacante` > **Desktop** > **Web Browser**:
-     - Escribir `http://172.20.10.102` y dar Go.
-     - Debe cargar la página de bienvenida de Chinos Café.
-3. **Modo Simulación:**
-   - Cambiar a modo **Simulation** en Packet Tracer.
-   - Filtrar eventos por `ICMP`, `HTTP`, `TCP`, `DNS`.
-   - Enviar un paquete PDU desde Kali hacia el Servidor Web para capturar visualmente el flujo de paquetes y tomar captura de pantalla para el informe.
-
----
-
-## 4. Guardado y Entrega
-* Guardar el archivo en esta carpeta con el nombre:
-  `red-lan/topologia_red_parcial2.pkt`
-* Guardar las capturas de pantalla de la topología y de los pings exitosos en:
-  `red-lan/evidencias/`
+## 5. Guardar Archivo
+Guarda el archivo en esta carpeta con el nombre:
+`red-lan/topologia_red_parcial2.pkt`
