@@ -1,349 +1,57 @@
-# Guía Paso a Paso: Red Empresarial Redundante en Cisco Packet Tracer 9.0.1
+# Guía de Sustentación y Configuración: Topología Packet Tracer 9.0.1 (Figura 1 Corregida)
 
 > [!IMPORTANT]
-> **¡Topología ya generada y lista para presentar!** Los archivos `red-lan/Parcial2.pkt` y `red-lan/topologia_red_parcial2.pkt` ya contienen toda esta arquitectura construida, cableada, decorada por zonas y configurada (HSRP v2, EtherChannel LACP, Rapid-PVST+, DHCP Split-Scope, NAT, DNS, HTTP/HTTPS y Roaming Wi-Fi Dual-AP). Puedes ir directo al **PASO 7** para ejecutar las demostraciones en vivo frente al profesor, o consultar los pasos intermedios como respaldo técnico de cada comando.
-
-Esta guía documenta la **topología completa con redundancia multicapa** lista para sustentar en el **Examen Parcial 2**.
-
-## Resumen de Redundancias Implementadas (Para explicar al Profesor)
-
-1. **Redundancia de Capa 3 (HSRP — Hot Standby Router Protocol):** Dos routers Cisco 2911 (`R1-PRINCIPAL` y `R2-RESPALDO`) comparten la puerta de enlace virtual **`172.20.10.1`**. Si `R1` falla o se apaga en plena demostración, `R2` asume el tráfico automáticamente sin desconectar la red.
-2. **Redundancia DHCP (Split-Scope):** `R1` reparte `172.20.10.110–149` y `R2` reparte `172.20.10.150–199` (ambos dentro del rango `172.20.10.100–199`), garantizando asignación de IP aunque caiga un router.
-3. **Redundancia de Capa 2 (EtherChannel LACP + Rapid-PVST+):** Dos switches Catalyst 2960 unidos por un enlace doble agregado (`Port-channel 1` en `Fa0/23` y `Fa0/24`). Si se corta un cable físico entre los switches, el otro mantiene la comunicación sin perder paquetes.
-4. **Redundancia Inalámbrica (Doble Access Point en Roaming):** Dos puntos de acceso (`AP1` en canal 1 y `AP2` en canal 6) emitiendo el SSID **`EXAMENPARCIAL2`** con WPA2-PSK **`1234567890`**.
-5. **Redundancia de Datos (BD Local + Réplica Cloud Supabase):** Servidor principal `SRV-CHINOS-WEB` (`172.20.10.100`) en la LAN y servidor `SRV-SUPABASE-REPLICA` (`203.0.113.10`) en el segmento WAN/Cloud accesible por ambos routers mediante NAT redundante.
+> **¡Topología 100% alineada al PDF oficial ya generada!** Los archivos `red-lan/Parcial2.pkt` y `red-lan/topologia_red_parcial2.pkt` ya contienen el esquema completo de **CHINOS CAFÉ S.A.** (Sede Matriz Chiriquí + Sucursal Provincia de Veraguas en Plaza Banconal - Vía Panamericana), corrigiendo todas las desconexiones de la **Figura 1**, aplicando los parámetros exactos de la **II Parte** (`SSID: EXAMEN PARCIAL2` con espacio, `172.20.10.100 - 199`, `PE: 172.20.10.1`, `DNS1: 172.20.10.1`, `DNS2: 8.8.8.8`), aislando la red sin Internet (**III Parte**) e integrando el **Sitio Original Prototipo completo** dentro de `SO1 LINUX BD1 / INTERFAZ WEB` (`172.20.10.100`) y su réplica `SO2 LINUX BD2 / INTERFAZ WEB` (`172.20.20.100`).
 
 ---
 
-## PASO 1: Colocar los Dispositivos en el Lienzo
+## 1. ¿Qué se corrigió respecto a la Figura 1 del PDF? (Para explicar en la Sustentación)
 
-Abre **Cisco Packet Tracer** y arrastra los siguientes equipos desde el menú inferior izquierdo:
-
-| Categoría en Packet Tracer | Subcategoría | Modelo Exacto | Cantidad | Nombres a ponerles (doble clic en la etiqueta) |
-| :--- | :--- | :--- | :---: | :--- |
-| **Network Devices** | **Routers** | `2911` | **2** | `R1-PRINCIPAL` y `R2-RESPALDO` |
-| **Network Devices** | **Switches** | `2960` (`2960-24TT`) | **3** | `SW1-CORE`, `SW2-REDUNDANTE` y `SW-WAN-ISP` |
-| **Network Devices** | **Wireless Devices** | `AP-PT` | **2** | `AP1-WIFI-CH1` y `AP2-WIFI-CH6` |
-| **End Devices** | **End Devices** | `Server` (`Server-PT`) | **2** | `SRV-CHINOS-WEB` y `SRV-SUPABASE-REPLICA` |
-| **End Devices** | **End Devices** | `PC` (`PC-PT`) | **1** | `VM-KALI-LINUX` |
-| **End Devices** | **End Devices** | `Laptop` (`Laptop-PT`) | **3** | `LAPTOP-A-DEV`, `LAPTOP-B-ADMIN` y `CLIENTE-WIFI` |
-| **End Devices** | **End Devices** | `Smartphone` (`SmartPhone-PT`) | **1** | `CELULAR-YAPPY` |
-
-> **Tip visual:** Ubica `SRV-SUPABASE-REPLICA` y `SW-WAN-ISP` arriba del todo (Zona Cloud/WAN), debajo coloca `R1-PRINCIPAL` (izquierda) y `R2-RESPALDO` (derecha), debajo `SW1-CORE` y `SW2-REDUNDANTE`, y abajo los servidores, laptops, Kali y Access Points.
-
----
-
-## PASO 2: Cableado Exacto Puerto por Puerto
-
-En el ícono del **Rayo naranja (Connections)**:
-
-### A. Cables Directos (`Copper Straight-Through` — línea negra continua)
-Conecta exactamente estos puertos:
-
-1. **Zona WAN (Nube / Supabase):**
-   * `SRV-SUPABASE-REPLICA` (`FastEthernet0`) ➔ `SW-WAN-ISP` (`FastEthernet0/1`)
-   * `R1-PRINCIPAL` (`GigabitEthernet0/1`) ➔ `SW-WAN-ISP` (`FastEthernet0/2`)
-   * `R2-RESPALDO` (`GigabitEthernet0/1`) ➔ `SW-WAN-ISP` (`FastEthernet0/3`)
-
-2. **Routers hacia Switches LAN:**
-   * `R1-PRINCIPAL` (`GigabitEthernet0/0`) ➔ `SW1-CORE` (`GigabitEthernet0/1`)
-   * `R2-RESPALDO` (`GigabitEthernet0/0`) ➔ `SW2-REDUNDANTE` (`GigabitEthernet0/1`)
-
-3. **Equipos por Ethernet en `SW1-CORE` (Lado Laptop A / Servidor):**
-   * `SW1-CORE` (`FastEthernet0/1`) ➔ `SRV-CHINOS-WEB` (`FastEthernet0`)
-   * `SW1-CORE` (`FastEthernet0/2`) ➔ `LAPTOP-A-DEV` (`FastEthernet0`)
-   * `SW1-CORE` (`FastEthernet0/10`) ➔ `AP1-WIFI-CH1` (`Port 0`)
-
-4. **Equipos por Ethernet en `SW2-REDUNDANTE` (Lado Laptop B / Kali):**
-   * `SW2-REDUNDANTE` (`FastEthernet0/1`) ➔ `VM-KALI-LINUX` (`FastEthernet0`)
-   * `SW2-REDUNDANTE` (`FastEthernet0/2`) ➔ `LAPTOP-B-ADMIN` (`FastEthernet0`)
-   * `SW2-REDUNDANTE` (`FastEthernet0/10`) ➔ `AP2-WIFI-CH6` (`Port 0`)
-
-### B. Cables Cruzados (`Copper Cross-Over` — línea negra punteada) para EtherChannel
-Une ambos switches LAN con **dos cables cruzados** para formar el canal redundante:
-* `SW1-CORE` (`FastEthernet0/23`) ➔ `SW2-REDUNDANTE` (`FastEthernet0/23`)
-* `SW1-CORE` (`FastEthernet0/24`) ➔ `SW2-REDUNDANTE` (`FastEthernet0/24`)
+1. **`R2-Secundario` Conectado y Configurado en HSRP v2 (Capa 3):**
+   * En la *Figura 1* del examen, `R2-Secundario` aparecía desconectado de los switches (solo tenía un cable de consola desde `LCH01`).
+   * **Corrección:** Se cableó `R2-Secundario` hacia Chiriquí (`Gig0/0` ➔ `SW0-BKP`) y hacia Veraguas (`Gig0/1` ➔ `SW1`), configurando **HSRP v2** junto a `R1`:
+     * **Chiriquí (Grupo 10):** Gateway Virtual Flotante **`172.20.10.1`** (`R1` `.2` *Active* Prio `110 + preempt`; `R2-Secundario` `.3` *Standby* Prio `100`).
+     * **Veraguas (Grupo 20):** Gateway Virtual Flotante **`172.20.20.1`** (`R1` `.2` *Active* Prio `110 + preempt`; `R2-Secundario` `.3` *Standby* Prio `100`).
+2. **Cobertura Inalámbrica Real para Equipos Flotantes (`Tablet-CH`, `Printer1`, `Tablet-VE`, `Printer0`):**
+   * En la *Figura 1*, las impresoras y tablets no tenían Access Points ni tarjetas Wi-Fi.
+   * **Corrección:** Se instalaron tarjetas inalámbricas `Linksys-WMP300N` en `Printer1` y `Printer0`, y se desplegaron **Access Points redundantes**:
+     * **Chiriquí:** `AP-CH1` (Canal 1) + `AP-CH2-BKP` (Canal 6) con **SSID `EXAMEN PARCIAL2`** *(con espacio)* y WPA2-PSK (AES) `1234567890`.
+     * **Veraguas:** `AP-VERAGUAS` (Canal 11) con **SSID `CHINOS VERAGUAS`** y WPA2-PSK (AES) `1234567890`.
+3. **Redundancia de Conmutación LAN (Capa 2 — EtherChannel LACP + Rapid-PVST+):**
+   * Se agregó `SW0-BKP` en Chiriquí unido a `SW0` mediante **`Port-channel 1` (`Fa0/23` y `Fa0/24`)**, evitando que la caída de un switch deje fuera al servidor o a los equipos de auditoría.
+4. **DHCP Redundante (*Split-Scope*) con Parámetros Oficiales:**
+   * Rango oficial `172.20.10.100 - 199` (`MR: 255.255.255.0`, `PE: 172.20.10.1`, `DNS1: 172.20.10.1`, `DNS2: 8.8.8.8`), reservando `.100–.109` para el servidor fijo (`172.20.10.100`) y laptops/VMs, repartiendo `.110–.149` desde `R1` y `.150–.199` desde `R2-Secundario`.
+5. **Sección WEB — Sitio Original Prototipo en el Servidor Simulado (Punto 4):**
+   * Tanto `SO1 LINUX BD1 / INTERFAZ WEB` (`172.20.10.100`) como `SO2 LINUX BD2 / INTERFAZ WEB` (`172.20.20.100`) tienen activos **HTTP y HTTPS** con las **4 páginas navegables del prototipo de Chinos Café S.A.**:
+     * `index.html` — Portada corporativa y menú de **6 Combos de Pizza** (superando el mínimo de 5 exigido).
+     * `fabrica.html` — CRUD de Pizzas con **Listbox de ingredientes (mín. 2, máx. 10)**, Combo Box de refrescos e ítem adicional.
+     * `pedidos.html` — Selección de combo en Combo Box, cálculo de flete/retiro, envío JSON por correo y replicación `BD1 ⟷ BD2`.
+     * `pagos.html` — Confirmación de pago por **YAPPY Comercial** y despacho al cliente.
 
 ---
 
-## PASO 3: Configuración CLI de Switches y Routers (Copiar y Pegar)
+## 2. Las 5 Demostraciones en Vivo frente al Profesor (Guion de Sustentación)
 
-### 1. Configurar `SW1-CORE`
-Haz clic en `SW1-CORE` ➔ pestaña **CLI**, presiona `Enter` y pega este bloque:
+> **Al abrir `red-lan/Parcial2.pkt`:** Presiona una vez el botón **Fast Forward Time (`Alt + D`)** abajo a la izquierda para adelantar 30 segundos simulados y que todas las tablets/impresoras reciban su IP por DHCP de inmediato. *(Opcional: para mostrar las ondas punteadas de Wi-Fi, ve a `Options ➔ Preferences ➔ Hide` y desmarca `Hide Wireless/Cellular Connection`).*
 
-```ios
-enable
-configure terminal
-hostname SW1-CORE
-no ip domain-lookup
-spanning-tree mode rapid-pvst
-spanning-tree vlan 1 root primary
+### Demo 1: Navegar el Sitio Original Prototipo dentro de Packet Tracer (Punto 4)
+1. Haz clic en **`LCH01`** (o en **`Tablet-CH`** / **`LVE02`**) ➔ pestaña **Desktop** ➔ **Web Browser**.
+2. Escribe `http://172.20.10.100` (o `https://172.20.10.100`) y pulsa **Go**.
+3. Navega en vivo frente al profesor por **Inicio ➔ Fábrica (CRUD Pizzas) ➔ Pedidos ➔ Pagos (YAPPY)** e incluso pulsa los botones de guardar/confirmar.
+4. Luego escribe `http://172.20.20.100` para demostrar cómo responde el servidor espejo y réplica **`SO2 LINUX BD2 / INTERFAZ WEB`** en la Sucursal de Veraguas (Plaza Banconal).
 
-interface range fa0/23 - 24
- switchport mode trunk
- channel-group 1 mode active
- no shutdown
-exit
+### Demo 2: Validar DHCP Inalámbrico en `EXAMEN PARCIAL2` (Punto 1)
+1. Haz clic en **`Tablet-CH`**, **`Printer1`** o **`Smartphone-Yappy`** ➔ **Desktop ➔ IP Configuration**.
+2. Muestra cómo obtuvieron automáticamente una IP dentro de **`172.20.10.110 - 199`**, máscara **`255.255.255.0`**, Gateway **`172.20.10.1`** y DNS **`172.20.10.1`**.
 
-interface port-channel 1
- switchport mode trunk
-exit
+### Demo 3: Tolerancia a Fallos de Router HSRP (`R1` ➔ `R2-Secundario`)
+1. Abre **`VM-KALI-LINUX`** (`172.20.10.105`) ➔ **Command Prompt** y ejecuta `ping 172.20.20.100` (llega hasta el servidor `SO2` en Veraguas).
+2. Abre **`R1`** ➔ pestaña **Physical** y apaga su interruptor de corriente.
+3. Pulsa **Fast Forward Time (`Alt + D`)** una vez y vuelve a hacer `ping 172.20.20.100` o abre `http://172.20.20.100` desde `LCH01`: **¡la red entre Chiriquí y Veraguas sigue operando sin interrupción a través de `R2-Secundario` (`show standby brief`)!**
 
-interface range fa0/1 - 10
- switchport mode access
- spanning-tree portfast
-exit
+### Demo 4: Tolerancia a Fallos en Capa 2 (`EtherChannel LACP Po1`)
+1. Con la herramienta **Delete (`X`)**, corta **uno** de los dos cables cruzados entre `SW0` y `SW0-BKP`.
+2. Desde **`VM-KALI-LINUX`** (`172.20.10.105`, en `SW0-BKP`) haz `ping 172.20.10.100` hacia `SO1` (en `SW0`): **0% pérdida de paquetes**, el segundo enlace del `Port-channel 1` mantiene la troncal activa.
 
-interface vlan 1
- ip address 172.20.10.11 255.255.255.0
- no shutdown
-exit
-
-ip default-gateway 172.20.10.1
-end
-write memory
-```
-
----
-
-### 2. Configurar `SW2-REDUNDANTE`
-Haz clic en `SW2-REDUNDANTE` ➔ pestaña **CLI**, presiona `Enter` y pega este bloque:
-
-```ios
-enable
-configure terminal
-hostname SW2-REDUNDANTE
-no ip domain-lookup
-spanning-tree mode rapid-pvst
-spanning-tree vlan 1 root secondary
-
-interface range fa0/23 - 24
- switchport mode trunk
- channel-group 1 mode active
- no shutdown
-exit
-
-interface port-channel 1
- switchport mode trunk
-exit
-
-interface range fa0/1 - 10
- switchport mode access
- spanning-tree portfast
-exit
-
-interface vlan 1
- ip address 172.20.10.12 255.255.255.0
- no shutdown
-exit
-
-ip default-gateway 172.20.10.1
-end
-write memory
-```
-
----
-
-### 3. Configurar `R1-PRINCIPAL` (HSRP Activo + DHCP Primario + NAT)
-Haz clic en `R1-PRINCIPAL` ➔ pestaña **CLI** (si pregunta `Would you like to enter the initial configuration dialog? [yes/no]:` escribe **`no`** y presiona `Enter`). Luego pega:
-
-```ios
-enable
-configure terminal
-hostname R1-PRINCIPAL
-no ip domain-lookup
-
-ip dhcp excluded-address 172.20.10.1 172.20.10.109
-ip dhcp excluded-address 172.20.10.150 172.20.10.254
-
-ip dhcp pool LAN_EXAMEN_PRIMARIO
- network 172.20.10.0 255.255.255.0
- default-router 172.20.10.1
- dns-server 172.20.10.100
-exit
-
-interface GigabitEthernet0/0
- description LAN_GATEWAY_ACTIVO
- ip address 172.20.10.2 255.255.255.0
- ip nat inside
- standby version 2
- standby 10 ip 172.20.10.1
- standby 10 priority 110
- standby 10 preempt
- no shutdown
-exit
-
-interface GigabitEthernet0/1
- description WAN_SUPABASE
- ip address 203.0.113.2 255.255.255.0
- ip nat outside
- standby version 2
- standby 20 ip 203.0.113.1
- standby 20 priority 110
- standby 20 preempt
- no shutdown
-exit
-
-access-list 1 permit 172.20.10.0 0.0.0.255
-ip nat inside source list 1 interface GigabitEthernet0/1 overload
-
-end
-write memory
-```
-
----
-
-### 4. Configurar `R2-RESPALDO` (HSRP Standby + DHCP Respaldo + NAT)
-Haz clic en `R2-RESPALDO` ➔ pestaña **CLI** (escribe **`no`** si pregunta por el asistente inicial) y pega:
-
-```ios
-enable
-configure terminal
-hostname R2-RESPALDO
-no ip domain-lookup
-
-ip dhcp excluded-address 172.20.10.1 172.20.10.149
-ip dhcp excluded-address 172.20.10.200 172.20.10.254
-
-ip dhcp pool LAN_EXAMEN_RESPALDO
- network 172.20.10.0 255.255.255.0
- default-router 172.20.10.1
- dns-server 172.20.10.100
-exit
-
-interface GigabitEthernet0/0
- description LAN_GATEWAY_STANDBY
- ip address 172.20.10.3 255.255.255.0
- ip nat inside
- standby version 2
- standby 10 ip 172.20.10.1
- standby 10 priority 100
- no shutdown
-exit
-
-interface GigabitEthernet0/1
- description WAN_SUPABASE_BACKUP
- ip address 203.0.113.3 255.255.255.0
- ip nat outside
- standby version 2
- standby 20 ip 203.0.113.1
- standby 20 priority 100
- no shutdown
-exit
-
-access-list 1 permit 172.20.10.0 0.0.0.255
-ip nat inside source list 1 interface GigabitEthernet0/1 overload
-
-end
-write memory
-```
-
----
-
-## PASO 4: Configurar los 2 Access Points (`EXAMENPARCIAL2`)
-
-1. Haz clic en **`AP1-WIFI-CH1`** ➔ pestaña **Config** ➔ **Port 1**:
-   * **SSID:** `EXAMENPARCIAL2`
-   * **Channel:** `1`
-   * **Authentication:** Marca **`WPA2-PSK`**
-   * **PSK Pass Phrase:** `1234567890`
-   * **Encryption Type:** `AES`
-2. Haz clic en **`AP2-WIFI-CH6`** ➔ pestaña **Config** ➔ **Port 1**:
-   * **SSID:** `EXAMENPARCIAL2`
-   * **Channel:** `6` *(canal distinto para evitar solapamiento y permitir roaming)*
-   * **Authentication:** Marca **`WPA2-PSK`**
-   * **PSK Pass Phrase:** `1234567890`
-   * **Encryption Type:** `AES`
-
----
-
-## PASO 5: Configurar Servidores, Laptops, Kali y Clientes Wi-Fi
-
-### 1. Servidor Principal `SRV-CHINOS-WEB` (`172.20.10.100`)
-* **Desktop ➔ IP Configuration (Static):**
-  * **IPv4 Address:** `172.20.10.100`
-  * **Subnet Mask:** `255.255.255.0`
-  * **Default Gateway:** `172.20.10.1`
-  * **DNS Server:** `172.20.10.100`
-* **Services ➔ HTTP:**
-  * Verifica que **HTTP** y **HTTPS** estén en **On**.
-  * Haz clic en *edit* sobre `index.html`, reemplázalo por esto y pulsa **Save**:
-    ```html
-    <html>
-    <body style="font-family:Arial;background:#fff8f0;padding:20px;">
-      <h1 style="color:#b91c1c;">CHINOS CAFE S.A. - Servidor NGINX + Flask</h1>
-      <hr>
-      <p><b>Nodo Primario LAN:</b> 172.20.10.100 (HTTP/HTTPS Activo)</p>
-      <p><b>Gateway Redundante HSRP:</b> 172.20.10.1</p>
-      <p><b>Estado Replica Supabase:</b> Sincronizado en tiempo real</p>
-    </body>
-    </html>
-    ```
-* **Services ➔ DNS:**
-  * Cambia **DNS Service** a **`On`**.
-  * Agrega dos registros tipo `A Record` (clic en **Add** tras cada uno):
-    1. **Name:** `chinoscafe.local` | **Address:** `172.20.10.100`
-    2. **Name:** `supabase.replica.cloud` | **Address:** `203.0.113.10`
-
-### 2. Servidor Réplica Cloud `SRV-SUPABASE-REPLICA` (`203.0.113.10`)
-* **Desktop ➔ IP Configuration (Static):**
-  * **IPv4 Address:** `203.0.113.10`
-  * **Subnet Mask:** `255.255.255.0`
-  * **Default Gateway:** `203.0.113.1`
-* **Services ➔ HTTP:**
-  * Deja **HTTP** y **HTTPS** en **On**, edita `index.html` y guarda:
-    ```html
-    <html>
-    <body style="font-family:Arial;background:#ecfdf5;padding:20px;">
-      <h1 style="color:#047857;">SUPABASE CLOUD - PostgreSQL Replica</h1>
-      <hr>
-      <p><b>Proyecto:</b> talewwtbjoyfsoresvmx.supabase.co (203.0.113.10)</p>
-      <p><b>Tablas activas:</b> public.pedido_replica | public.pago_replica</p>
-    </body>
-    </html>
-    ```
-
-### 3. Equipos Cableados por Ethernet (`Static` o `DHCP`)
-En **Desktop ➔ IP Configuration** asigna:
-* **`LAPTOP-A-DEV`:** IP `172.20.10.101`, Máscara `255.255.255.0`, Gateway `172.20.10.1`, DNS `172.20.10.100`.
-* **`LAPTOP-B-ADMIN`:** IP `172.20.10.102`, Máscara `255.255.255.0`, Gateway `172.20.10.1`, DNS `172.20.10.100`.
-* **`VM-KALI-LINUX`:** IP `172.20.10.105`, Máscara `255.255.255.0`, Gateway `172.20.10.1`, DNS `172.20.10.100`.
-
-### 4. Clientes Inalámbricos (`CELULAR-YAPPY` y `CLIENTE-WIFI`)
-* **`CELULAR-YAPPY`:**
-  1. Clic en el teléfono ➔ **Config ➔ Wireless0**:
-     * **SSID:** `EXAMENPARCIAL2`
-     * **WPA2-PSK / Pass Phrase:** `1234567890`
-  2. En **Desktop ➔ IP Configuration**, marca **DHCP** (recibirá `172.20.10.110+` automáticamente).
-* **`CLIENTE-WIFI` (`Laptop-PT`):**
-  1. Pestaña **Physical** ➔ apaga la laptop en su botón de encendido ➔ arrastra su tarjeta Ethernet hacia afuera y coloca el módulo **`WPC300N`** ➔ enciéndela de nuevo.
-  2. Pestaña **Desktop ➔ PC Wireless ➔ Connect** ➔ **Refresh** ➔ elige `EXAMENPARCIAL2` ➔ **Connect** ➔ clave `1234567890`.
-  3. Verifica en **IP Configuration** que tenga IP por **DHCP** (`172.20.10.111+`).
-
----
-
-## PASO 6: Decoración Profesional para la Presentación
-
-Usa la herramienta de rectángulos de colores (**Draw Rectangle** en la barra superior) y notas (**Place Note `N`**) para delimitar 3 zonas visuales:
-* **Recuadro Azul claro (Arriba):** `ZONA CLOUD / WAN — Réplica Supabase (203.0.113.0/24)`
-* **Recuadro Verde claro (Centro):** `NÚCLEO REDUNDANTE — HSRP (VIP 172.20.10.1) + EtherChannel LACP`
-* **Recuadro Amarillo claro (Abajo):** `LAN LABORATORIO — 172.20.10.0/24 | SSID: EXAMENPARCIAL2`
-
-Guarda tu proyecto en:
-`red-lan/topologia_red_parcial2.pkt`
-
----
-
-## PASO 7: Las 4 Demostraciones en Vivo frente al Profesor
-
-1. **Acceso por Nombre DNS a la App y a Supabase:**
-   * Abre `VM-KALI-LINUX` ➔ **Web Browser** ➔ entra a `https://chinoscafe.local` y luego a `https://supabase.replica.cloud`. ¡Ambas cargan!
-2. **Prueba de Caída de Cable en EtherChannel (Capa 2):**
-   * Con la herramienta **Delete (`X`)**, borra **uno** de los dos cables cruzados entre `SW1-CORE` y `SW2-REDUNDANTE`.
-   * Haz `ping 172.20.10.100` desde `VM-KALI-LINUX`: **0% de pérdida**, el segundo enlace del Port-Channel mantiene todo arriba.
-3. **Prueba de Caída del Router Principal HSRP (Capa 3):**
-   * Abre `R1-PRINCIPAL` ➔ pestaña **Physical** y apaga su interruptor de corriente (o borra el cable `R1`–`SW1`).
-   * Adelanta el reloj 10 segundos con el botón **Fast Forward Time (`Alt+D`)**.
-   * Desde `VM-KALI-LINUX` ejecuta `ping 172.20.10.1` y abre `https://supabase.replica.cloud` en el navegador: **sigue funcionando gracias a `R2-RESPALDO` (`show standby brief`)**.
-4. **Prueba de Caída de un Access Point Wi-Fi:**
-   * Desconecta `AP1-WIFI-CH1`: el `CELULAR-YAPPY` y `CLIENTE-WIFI` se pasan automáticamente a `AP2-WIFI-CH6` manteniendo el SSID `EXAMENPARCIAL2`.
+### Demo 5: Tolerancia a Fallos Inalámbrica (Doble AP en Chiriquí)
+1. Elimina el cable o apaga **`AP-CH1`**: `Tablet-CH`, `Printer1` y `Smartphone-Yappy` migran automáticamente en *roaming* hacia **`AP-CH2-BKP`** conservando el SSID **`EXAMEN PARCIAL2`**.
