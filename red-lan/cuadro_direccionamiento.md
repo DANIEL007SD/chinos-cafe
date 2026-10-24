@@ -1,57 +1,35 @@
-# Parte II: Cuadro Maestro de Direccionamiento IP y Especificación de Red
+# Parte II: Cuadro Maestro de Direccionamiento IP y Arquitectura Redundante
 
-## 1. Parámetros Oficiales del Router de Laboratorio
+## 1. Parámetros Oficiales de Red y Alta Disponibilidad
 
-* **Topología de Conexión:** Híbrida (Conexión por cable Ethernet a los puertos LAN del Router + Cobertura WLAN).
-* **Nombre de Red Inalámbrica (SSID):** `EXAMENPARCIAL2`
-* **Contraseña Wi-Fi (Pre-Shared Key):** `1234567890`
-* **Seguridad Inalámbrica:** WPA2-Personal (Cifrado AES)
-* **Dirección de Red:** `172.20.10.0/24`
-* **Máscara de Subred:** `255.255.255.0` (`/24`)
-* **Puerta de Enlace Predeterminada (Gateway):** `172.20.10.1`
-* **Rango del Pool DHCP:** `172.20.10.100` – `172.20.10.199`
-* **Servidores DNS:** `172.20.10.1` / `8.8.8.8`
-
----
-
-## 2. Cuadro Maestro de Direccionamiento IP (Examen Parcial 2)
-
-| Dispositivo / Equipo | Nombre de Host | Interfaz Física / Lógica | Modo IP | Dirección IP | Máscara de Subred | Puerta de Enlace | Servicios y Puertos Clave | Rol en el Escenario |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Router de Laboratorio** | `ROUTER-CISCO-01` | FastEthernet / Gi0/0 + WLAN | Estática | `172.20.10.1` | `255.255.255.0` | N/A | DHCP Server, DNS Relay, Gateway | Emite SSID `EXAMENPARCIAL2`, distribuye puertos Ethernet y conmuta tráfico LAN |
-| **VM Servidor Web (Laptop A)** | `SRV-CHINOS-WEB` | `enp0s3` (Adaptador Puente) | Estática (`netplan`) | `172.20.10.100` | `255.255.255.0` | `172.20.10.1` | **8080/tcp** (HTTP)<br>**8443/tcp** (HTTPS SSL)<br>**22/tcp** (SSH + Knockd)<br>**21/tcp** (FTP + Knockd) | **Servidor Objetivo / Mitigación:** Aloja la app Flask con proxy NGINX, SQLite local y firewall UFW |
-| **Laptop A (Host Físico)** | `LAPTOP-A-DEV` | Ethernet RJ45 / Wi-Fi | DHCP | `172.20.10.101` | `255.255.255.0` | `172.20.10.1` | Navegador Web, Cliente SSH | Equipo anfitrión del desarrollador (Laptop A) |
-| **Laptop B (Host Físico - Tú)**| `LAPTOP-B-ADMIN` | Ethernet RJ45 (`Realtek USB GbE`) | DHCP | `172.20.10.102` | `255.255.255.0` | `172.20.10.1` | Packet Tracer, Dashboard Supabase | Equipo anfitrión de red, gestión de réplica y atacante (Laptop B) |
-| **VM Kali Linux (Laptop B)** | `KALI-LINUX-ATK`| `eth0` (Adaptador Puente) | DHCP / Estática | `172.20.10.105` | `255.255.255.0` | `172.20.10.1` | Nmap, Wireshark, Knock, Curl | **Máquina Atacante / Auditoría:** Lanza el escaneo de puertos, análisis de tráfico y pruebas de seguridad |
-| **BD Réplica Cloud (Supabase)** | `SUPABASE-CLOUD` | HTTPS (TLS 1.3) | Cloud | `talewwtbjoyfsoresvmx.supabase.co` | N/A | Internet / NAT | **443/tcp** (PostgREST API)<br>**5432/tcp** (PostgreSQL) | **Segunda Base de Datos:** Réplica relacional en la nube de `pedido_replica` y `pago_replica` |
+* **Subred LAN Laboratorio:** `172.20.10.0/24` (Máscara `255.255.255.0`)
+* **Puerta de Enlace Virtual (VIP HSRP Grupo 10):** `172.20.10.1`
+* **Rango DHCP Redundante (Split-Scope `172.20.10.100–199`):**
+  * Sub-rango Estático reservado (Servidores y VMs): `172.20.10.100` – `172.20.10.109`
+  * Pool DHCP Primario (`R1-PRINCIPAL`): `172.20.10.110` – `172.20.10.149`
+  * Pool DHCP Respaldo (`R2-RESPALDO`): `172.20.10.150` – `172.20.10.199`
+* **Red Inalámbrica (Roaming Dual-AP):**
+  * **SSID:** `EXAMENPARCIAL2`
+  * **Seguridad:** WPA2-PSK (AES) · **Clave:** `1234567890`
+  * **Canales sin solapamiento:** Canal `1` (`AP1`) y Canal `6` (`AP2`)
+* **Subred WAN / Cloud (Simulación Supabase):** `203.0.113.0/24` (NAT Overload en `R1` y `R2`)
 
 ---
 
-## 3. Configuración de Interfaces de Red Físicas
+## 2. Cuadro Maestro de Direccionamiento IP
 
-### Para Laptop B (Tu Laptop):
-* **Si te conectas por cable de red (Ethernet recomendado por el profesor):**
-  Tu laptop tiene el adaptador **`Realtek USB GbE Family Controller`**.
-  En VirtualBox, la VM de Kali Linux se puentea a ese adaptador.
-* **Si te conectas por Wi-Fi:**
-  Te asocias al SSID `EXAMENPARCIAL2` con la clave `1234567890`. Tu tarjeta es **`Realtek 8821CE Wireless LAN 802.11ac PCI-E NIC`**.
-
----
-
-## 4. Secuencia de Verificación de Conectividad (Pre-Ataque)
-
-Desde la terminal de tu **Kali Linux**:
-
-```bash
-# 1. Comprobar que Kali recibió IP en el rango 172.20.10.x
-ip a
-
-# 2. Ping al Router (Gateway)
-ping -c 3 172.20.10.1
-
-# 3. Ping al Servidor de Laptop A
-ping -c 3 172.20.10.100
-
-# 4. Verificar que la app web de Laptop A responda
-curl -I http://172.20.10.100:8080
-```
+| Dispositivo | Nombre de Host | Interfaz | Modo | Dirección IP | Máscara | Gateway | Rol y Mecanismo de Redundancia |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Gateway Virtual** | `VIP-HSRP-G10` | Virtual (Capa 3) | HSRP v2 | **`172.20.10.1`** | `255.255.255.0` | N/A | IP flotante compartida entre `R1` y `R2` |
+| **Router Primario** | `R1-PRINCIPAL` | `Gig0/0` (LAN)<br>`Gig0/1` (WAN) | Estática | `172.20.10.2`<br>`203.0.113.2` | `255.255.255.0`<br>`255.255.255.0` | N/A | **HSRP Active** (Prioridad 110 + Preempt), DHCP `.110–.149`, NAT |
+| **Router Respaldo** | `R2-RESPALDO` | `Gig0/0` (LAN)<br>`Gig0/1` (WAN) | Estática | `172.20.10.3`<br>`203.0.113.3` | `255.255.255.0`<br>`255.255.255.0` | N/A | **HSRP Standby** (Prioridad 100), DHCP `.150–.199`, NAT Backup |
+| **Switch Primario** | `SW1-CORE` | `VLAN 1` + `Po1` | Estática | `172.20.10.11` | `255.255.255.0` | `172.20.10.1` | **STP Root Primary** + EtherChannel LACP (`Fa0/23-24`) |
+| **Switch Secundario** | `SW2-REDUNDANTE` | `VLAN 1` + `Po1` | Estática | `172.20.10.12` | `255.255.255.0` | `172.20.10.1` | **STP Root Secondary** + EtherChannel LACP (`Fa0/23-24`) |
+| **Access Point 1** | `AP1-WIFI-CH1` | `Port 0` / WLAN | Puente L2 | N/A (Capa 2) | N/A | N/A | SSID `EXAMENPARCIAL2` (Canal 1, WPA2 `1234567890`) |
+| **Access Point 2** | `AP2-WIFI-CH6` | `Port 0` / WLAN | Puente L2 | N/A (Capa 2) | N/A | N/A | SSID `EXAMENPARCIAL2` (Canal 6, Roaming de respaldo) |
+| **VM Servidor Web** | `SRV-CHINOS-WEB` | `Fa0` / `enp0s3` | Estática | **`172.20.10.100`** | `255.255.255.0` | `172.20.10.1` | **Servidor Primario:** NGINX + Flask (8080/8443), SSH/FTP Knockd, DNS |
+| **Laptop A (Física)** | `LAPTOP-A-DEV` | Ethernet `Fa0` | Estática | `172.20.10.101` | `255.255.255.0` | `172.20.10.1` | Host de desarrollo y monitoreo (Laptop A) |
+| **Laptop B (Física)** | `LAPTOP-B-ADMIN` | Ethernet `Fa0` | Estática | `172.20.10.102` | `255.255.255.0` | `172.20.10.1` | Host de red, Packet Tracer y panel Supabase (Laptop B) |
+| **VM Kali Linux** | `VM-KALI-LINUX` | `Fa0` / `eth0` | Estática | **`172.20.10.105`** | `255.255.255.0` | `172.20.10.1` | Estación de auditoría de seguridad (Nmap, Wireshark, Knock) |
+| **Clientes Wi-Fi** | `CELULAR-YAPPY` / `CLIENTE-WIFI` | `Wireless0` | DHCP | `172.20.10.110+` | `255.255.255.0` | `172.20.10.1` | Clientes móviles conectados a `EXAMENPARCIAL2` |
+| **BD Réplica Cloud** | `SRV-SUPABASE-REPLICA` | `Fa0` (WAN) | Estática | **`203.0.113.10`** | `255.255.255.0` | `203.0.113.1` | **Réplica Relacional:** Simulación de `talewwtbjoyfsoresvmx.supabase.co` |
