@@ -1,6 +1,9 @@
 # Guía Paso a Paso: Red Empresarial Redundante en Cisco Packet Tracer 9.0.1
 
-Esta guía te lleva desde un archivo en blanco hasta una **topología completa con redundancia multicapa** lista para sustentar en el **Examen Parcial 2**.
+> [!IMPORTANT]
+> **¡Topología ya generada y lista para presentar!** Los archivos `red-lan/Parcial2.pkt` y `red-lan/topologia_red_parcial2.pkt` ya contienen toda esta arquitectura construida, cableada, decorada por zonas y configurada (HSRP v2, EtherChannel LACP, Rapid-PVST+, DHCP Split-Scope, NAT, DNS, HTTP/HTTPS y Roaming Wi-Fi Dual-AP). Puedes ir directo al **PASO 7** para ejecutar las demostraciones en vivo frente al profesor, o consultar los pasos intermedios como respaldo técnico de cada comando.
+
+Esta guía documenta la **topología completa con redundancia multicapa** lista para sustentar en el **Examen Parcial 2**.
 
 ## Resumen de Redundancias Implementadas (Para explicar al Profesor)
 

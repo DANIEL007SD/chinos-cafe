@@ -31,5 +31,5 @@
 | **Laptop A (Física)** | `LAPTOP-A-DEV` | Ethernet `Fa0` | Estática | `172.20.10.101` | `255.255.255.0` | `172.20.10.1` | Host de desarrollo y monitoreo (Laptop A) |
 | **Laptop B (Física)** | `LAPTOP-B-ADMIN` | Ethernet `Fa0` | Estática | `172.20.10.102` | `255.255.255.0` | `172.20.10.1` | Host de red, Packet Tracer y panel Supabase (Laptop B) |
 | **VM Kali Linux** | `VM-KALI-LINUX` | `Fa0` / `eth0` | Estática | **`172.20.10.105`** | `255.255.255.0` | `172.20.10.1` | Estación de auditoría de seguridad (Nmap, Wireshark, Knock) |
-| **Clientes Wi-Fi** | `CELULAR-YAPPY` / `CLIENTE-WIFI` | `Wireless0` | DHCP | `172.20.10.110+` | `255.255.255.0` | `172.20.10.1` | Clientes móviles conectados a `EXAMENPARCIAL2` |
+| **Clientes Wi-Fi** | `CELULAR-YAPPY` / `CLIENTE-WIFI` / `TABLET-WIFI` | `Wireless0` | DHCP | `172.20.10.110+` | `255.255.255.0` | `172.20.10.1` | Clientes móviles en roaming sobre `EXAMENPARCIAL2` |
 | **BD Réplica Cloud** | `SRV-SUPABASE-REPLICA` | `Fa0` (WAN) | Estática | **`203.0.113.10`** | `255.255.255.0` | `203.0.113.1` | **Réplica Relacional:** Simulación de `talewwtbjoyfsoresvmx.supabase.co` |
