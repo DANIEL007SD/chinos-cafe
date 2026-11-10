@@ -1,0 +1,14 @@
+=== VERIFICACIÓN DATOS BD PRINCIPAL ===
+Ingredientes: 12
+Refrescos:    5
+Pizzas:       6
+Pedidos:      3
+Pagos:        0
+
+Pizzas disponibles:
+  #1 Combo Clásica $7.50 [Queso, Peperoni]
+  #2 Combo Hawaiana $8.00 [Queso, Jamón, Piña]
+  #3 Combo Vegetariana $7.75 [Queso, Champiñón, Pimiento, Cebolla, Maíz]
+  #4 Combo Carnívora $9.50 [Queso, Peperoni, Tocino, Pollo, Salchicha]
+  #5 Combo Suprema $10.00 [Queso, Peperoni, Jamón, Champiñón, Pimiento, Cebolla, Aceitunas]
+  #6 Combo Pollo BBQ $9.00 [Queso, Cebolla, Pollo, Maíz]

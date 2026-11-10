@@ -1,0 +1,25 @@
+===== VERIFICACIÓN TOPOLOGÍA PACKET TRACER — 2026-11-10 12:07:43 =====
+
+Archivo oficial: red-lan/Parcial2.pkt
+-rw-r--r-- 1 willi 197609 87148 Nov  9 17:41 red-lan/Parcial2.pkt
+d9562b739e57dd25862a06cfa86171bf *red-lan/Parcial2.pkt
+
+Documentación acompañante:
+-rw-r--r-- 1 willi 197609 7587 Oct 24 15:34 red-lan/cuadro_direccionamiento.md
+-rw-r--r-- 1 willi 197609 6284 Oct 24 15:40 red-lan/topologia_packet_tracer.md
+
+Secciones del cuadro de direccionamiento:
+# II PARTE: Simulación de RED LAN Inalámbrica y Cuadro de Direccionamiento IP
+## 1. Cuadro Oficial de Configuración Física / Simulada (Punto 1 del Examen)
+## 2. Propuesta del Cuadro de IP Completo (Punto 2 — Figura 1 Corregida: Chiriquí y Sucursal Veraguas)
+## 3. Resumen de Correcciones Realizadas al Diagrama Original (`Figura 1` — Punto 3)
+
+Guía de pruebas:
+# Guía de Sustentación y Configuración: Topología Packet Tracer 9.0.1 (Figura 1 Corregida)
+## 1. ¿Qué se corrigió respecto a la Figura 1 del PDF? (Para explicar en la Sustentación)
+## 2. Las 5 Demostraciones en Vivo frente al Profesor (Guion de Sustentación)
+### Demo 1: Navegar el Sitio Original Prototipo dentro de Packet Tracer (Punto 4)
+### Demo 2: Validar DHCP Inalámbrico en `EXAMEN PARCIAL2` (Punto 1)
+### Demo 3: Tolerancia a Fallos de Router HSRP (`R1` ➔ `R2-Secundario`)
+### Demo 4: Tolerancia a Fallos en Capa 2 (`EtherChannel LACP Po1`)
+### Demo 5: Tolerancia a Fallos Inalámbrica (Doble AP en Chiriquí)

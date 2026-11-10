@@ -1,0 +1,14 @@
+[Unit]
+Description=Agente de defensa Chinos Cafe
+After=network.target chinos.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/agente_defensa.sh
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

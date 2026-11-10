@@ -1,0 +1,35 @@
+===== SCRIPTS DE SEGURIDAD — 2026-11-10 12:07:48 =====
+
+## Scripts listos (contenido en scripts/):
+scripts/kali:
+total 4
+drwxr-xr-x 1 willi 197609    0 Nov 10 12:05 .
+drwxr-xr-x 1 willi 197609    0 Nov 10 12:06 ..
+-rwxr-xr-x 1 willi 197609 3062 Nov 10 12:05 ejecutar_pruebas.sh
+
+scripts/servidor:
+total 21
+drwxr-xr-x 1 willi 197609    0 Nov 10 12:06 .
+drwxr-xr-x 1 willi 197609    0 Nov 10 12:06 ..
+-rw-r--r-- 1 willi 197609  262 Nov 10 12:06 agente-defensa.service
+-rwxr-xr-x 1 willi 197609 2055 Nov 10 12:06 agente_defensa.sh
+-rwxr-xr-x 1 willi 197609  924 Nov 10 12:06 backup_db.sh
+-rw-r--r-- 1 willi 197609 1333 Nov 10 12:06 nginx_hardening.conf
+-rw-r--r-- 1 willi 197609  712 Nov 10 12:06 sysctl_hardening.conf
+
+## Validación de sintaxis Bash (modo -n):
+[OK] scripts/kali/ejecutar_pruebas.sh
+[OK] scripts/servidor/agente_defensa.sh
+[OK] scripts/servidor/backup_db.sh
+
+## Reglas de enfrentamiento activas (ver PLAN_EQUIPO.md §6):
+## 6. Reglas de enfrentamiento
+
+1. Solo se ataca lo que el profesor autorice explícitamente.
+2. Nada fuera del rango `172.20.10.0/24`.
+3. No se ataca el gateway `172.20.10.1` ni equipos de infraestructura del aula.
+4. No se borran datos ni se instala persistencia en equipos rivales.
+5. Ante la señal de "stop" del profesor, se detiene todo y se documenta.
+6. Toda acción ofensiva queda registrada en `audit.log` con fecha, hora y objetivo.
+
+---
